@@ -46,13 +46,13 @@ typedef double f64;
 /* Platform Detection */
 
 #if defined(_WIN32) || defined(_WIN64)
-    #define LT_OS_WINDOWS 1
+    #define OS_WINDOWS 1
 #else
     #define OS_WINDOWS 0
 #endif
 
 #if defined(__linux__)
-    #define LT_OS_LINUX 1
+    #define OS_LINUX 1
 #else
     #define OS_LINUX 0
 #endif
@@ -60,7 +60,7 @@ typedef double f64;
 #if defined(__APPLE__) && defined(__MACH__)
     #define OS_MAC 1
 #else
-    #define LT_OS_MAC 0
+    #define OS_MAC 0
 #endif
 
 #if !OS_WINDOWS && !OS_LINUX && !OS_MAC
