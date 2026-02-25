@@ -30,6 +30,8 @@ void arena_destroy(mem_arena* arena);
 u64 arena_align_forward(u64 pos, u64 alignment);
 void* arena_push(mem_arena* arena, u64 size);
 void arena_clear(mem_arena* arena);
+u64 arena_mark(mem_arena* arena);
+void arena_pop(mem_arena* arena, u64 mark);
 
 /* API Implementations */
 
@@ -90,6 +92,18 @@ void* arena_push(mem_arena* arena, u64 size) {
 void arena_clear(mem_arena* arena) {
     // capacity stays the same, as this is just moving the position pointer back to the start
     arena->pos = sizeof(mem_arena);
+}
+
+u64 arena_mark(mem_arena* arena) {
+    return arena->pos;
+}
+
+void arena_pop(mem_arena* arena, u64 mark) {
+    if (mark < sizeof(mem_arena)) {
+        mark = sizeof(mem_arena);
+    }
+
+    arena->pos = mark;
 }
 
 #endif // LT_ARENA_IMPLEMENTATION

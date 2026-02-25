@@ -43,6 +43,8 @@ typedef double f64;
 #define MiB(n) ((u64)(n) << 20)
 #define GiB(n) ((u64)(n) << 30)
 
+#define ARR_LENGTH(arr) (sizeof(arr) / sizeof((arr)[0]))
+
 /* Platform Detection */
 
 #if defined(_WIN32) || defined(_WIN64)
