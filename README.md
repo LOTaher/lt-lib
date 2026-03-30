@@ -44,7 +44,6 @@ int main(void) {
 }
 ```
 
-- `lt_test.h`: Minimal test library that supports conditionals and string equality.
 - `lt_strings.h`: Length based strings and common string functions. `lt_arena` is required for some functions.
 
 ```c
