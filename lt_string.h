@@ -34,8 +34,8 @@ typedef struct {
 
 string8 str8_substring(string8 str, u64 start, u64 end);
 string8 str8_cstring(char *str);
-string8 str8_copy(string8 str, mem_arena *arena);
-string8 str8_concat(string8 str1, string8 str2, mem_arena *arena);
+string8 str8_copy(string8 str, arena *arena);
+string8 str8_concat(string8 str1, string8 str2, arena *arena);
 b8      str8_compare(string8 str1, string8 str2);
 b8      str8_contains(string8 str, string8 substr);
 

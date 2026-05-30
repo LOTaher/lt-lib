@@ -33,7 +33,7 @@ b8 str8_contains(string8 str, string8 substr)
   return -1;
 }
 
-string8 str8_copy(string8 str, mem_arena *arena)
+string8 str8_copy(string8 str, arena *arena)
 {
   u8 *bytes = (u8 *)arena_push(arena, str.length);
 
@@ -42,7 +42,7 @@ string8 str8_copy(string8 str, mem_arena *arena)
   return (string8){bytes, str.length};
 }
 
-string8 str8_concat(string8 str1, string8 str2, mem_arena *arena)
+string8 str8_concat(string8 str1, string8 str2, arena *arena)
 {
   u8 *bytes = (u8 *)arena_push(arena, str1.length + str2.length);
 

@@ -23,14 +23,22 @@
 typedef struct {
     u64 capacity;
     u64 pos;
-} mem_arena;
+} arena;
 
-mem_arena* arena_create(u64 capacity);
-void       arena_destroy(mem_arena* arena);
+typedef struct {
+    arena* arena;
+    u64 pos;
+} arena_temp;
+
+arena*     arena_create(u64 capacity);
+void       arena_destroy(arena* arena);
 u64        arena_align_forward(u64 pos, u64 alignment);
-void*      arena_push(mem_arena* arena, u64 size);
-void       arena_clear(mem_arena* arena);
-u64        arena_mark(mem_arena* arena);
-void       arena_pop(mem_arena* arena, u64 mark);
+void*      arena_push(arena* arena, u64 size);
+void       arena_clear(arena* arena);
+u64        arena_mark(arena* arena);
+void       arena_pop(arena* arena, u64 mark);
+
+arena_temp arena_temp_begin(arena* arena);
+void       arena_temp_end(arena_temp arena);
 
 #endif // LT_ARENA_H

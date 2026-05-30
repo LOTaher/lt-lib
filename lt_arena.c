@@ -18,19 +18,18 @@
 #include <string.h>
 #include "./lt_arena.h"
 
-mem_arena* arena_create(u64 capacity)
+arena* arena_create(u64 capacity)
 {
-    mem_arena* arena = (mem_arena*)malloc(capacity);
-    // TODO(laith): null check here?
+    arena* arenaPtr = (arena*)malloc(sizeof(arena) + capacity);
 
-    arena->capacity = capacity;
+    arenaPtr->capacity = capacity;
     // points the starting position to the end of the arena struct in address space
-    arena->pos = sizeof(mem_arena);
+    arenaPtr->pos = sizeof(*arenaPtr);
 
-    return arena;
+    return arenaPtr;
 }
 
-void arena_destroy(mem_arena* arena)
+void arena_destroy(arena* arena)
 {
     free(arena);
 }
@@ -41,7 +40,7 @@ u64 arena_align_forward(u64 pos, u64 alignment)
     return (pos + (alignment - 1)) & ~(alignment - 1);
 }
 
-void* arena_push(mem_arena* arena, u64 size)
+void* arena_push(arena* arena, u64 size)
 {
     u64 current_pos = arena->pos;
     // TODO (laith): look into cpu intricaces and why position alignment being in a power of 2
@@ -68,22 +67,33 @@ void* arena_push(mem_arena* arena, u64 size)
     return block;
 }
 
-void arena_clear(mem_arena* arena)
+void arena_clear(arena* arena)
 {
     // capacity stays the same, as this is just moving the position pointer back to the start
-    arena->pos = sizeof(mem_arena);
+    arena->pos = sizeof(*arena);
 }
 
-u64 arena_mark(mem_arena* arena)
+u64 arena_mark(arena* arena)
 {
     return arena->pos;
 }
 
-void arena_pop(mem_arena* arena, u64 mark)
+void arena_pop(arena* arena, u64 mark)
 {
-    if (mark < sizeof(mem_arena)) {
-        mark = sizeof(mem_arena);
+    if (mark < sizeof(*arena)) {
+        mark = sizeof(*arena);
     }
 
     arena->pos = mark;
+}
+
+arena_temp arena_temp_begin(arena* arena) {
+    arena_temp temp = {0};
+    temp.arena = arena;
+    temp.pos = arena->pos;
+    return temp;
+}
+
+void arena_temp_end(arena_temp arena) {
+    arena_pop(arena.arena, arena.pos);
 }
