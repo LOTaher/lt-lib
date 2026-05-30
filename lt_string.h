@@ -23,19 +23,20 @@
 #include "lt_arena.h"
 #include "lt_base.h"
 
-// NOTE(laith): utf-8 string, windows works with utf-16 strings
 typedef struct {
   u8 *str;
   u64 length;
 } string8;
 
-#define str8_lit(s) (string8){(u8 *)(s), sizeof(s) - 1}
-#define str8_fmt(s) (int)(s).length, (s).str
-
-// TODO(laith): add str8_split and a string8 array data type
+#define str8(s) \
+    (string8){(u8 *)(s), sizeof(s) - 1}
+#define str8_fmt(s) \
+    (int)(s).length, (s).str
 
 #if defined(LT_STRING_IMPLEMENTATION)
-string8 str8_substring(string8 str, u64 start, u64 end) {
+
+string8 str8_substring(string8 str, u64 start, u64 end)
+{
   end = MIN(end, str.length);
   start = MIN(start, end);
 
@@ -44,14 +45,16 @@ string8 str8_substring(string8 str, u64 start, u64 end) {
 
 string8 str8_cstring(char *str) { return (string8){(u8 *)str, strlen(str)}; }
 
-s8 str8_compare(string8 str1, string8 str2) {
+b8 str8_compare(string8 str1, string8 str2)
+{
   if (str1.length != str2.length)
     return -1;
 
   return memcmp(str1.str, str2.str, str1.length) == 0 ? 1 : -1;
 }
 
-s8 str8_contains(string8 str, string8 substr) {
+b8 str8_contains(string8 str, string8 substr)
+{
   if (substr.length > str.length)
     return -1;
 
@@ -65,7 +68,8 @@ s8 str8_contains(string8 str, string8 substr) {
   return -1;
 }
 
-string8 str8_copy(string8 str, mem_arena *arena) {
+string8 str8_copy(string8 str, mem_arena *arena)
+{
   u8 *bytes = (u8 *)arena_push(arena, str.length);
 
   memcpy(bytes, &str, str.length);
@@ -73,7 +77,8 @@ string8 str8_copy(string8 str, mem_arena *arena) {
   return (string8){bytes, str.length};
 }
 
-string8 str8_concat(string8 str1, string8 str2, mem_arena *arena) {
+string8 str8_concat(string8 str1, string8 str2, mem_arena *arena)
+{
   u8 *bytes = (u8 *)arena_push(arena, str1.length + str2.length);
 
   memcpy(bytes, str1.str, str1.length);

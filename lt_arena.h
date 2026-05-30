@@ -26,24 +26,22 @@ typedef struct {
 } mem_arena;
 
 mem_arena* arena_create(u64 capacity);
-void arena_destroy(mem_arena* arena);
-u64 arena_align_forward(u64 pos, u64 alignment);
-void* arena_push(mem_arena* arena, u64 size);
-void arena_clear(mem_arena* arena);
-u64 arena_mark(mem_arena* arena);
-void arena_pop(mem_arena* arena, u64 mark);
+void       arena_destroy(mem_arena* arena);
+u64        arena_align_forward(u64 pos, u64 alignment);
+void*      arena_push(mem_arena* arena, u64 size);
+void       arena_clear(mem_arena* arena);
+u64        arena_mark(mem_arena* arena);
+void       arena_pop(mem_arena* arena, u64 mark);
 
 /* API Implementations */
-
-// TODO(laith): add a debug flag that will fill unused memory with a byte like 0xCD
-// and cleared memory with a byte like 0xDD
 
 #if defined(LT_ARENA_IMPLEMENTATION)
 
 #include <stdlib.h>
 #include <string.h>
 
-mem_arena* arena_create(u64 capacity) {
+mem_arena* arena_create(u64 capacity)
+{
     mem_arena* arena = (mem_arena*)malloc(capacity);
     // TODO(laith): null check here?
 
@@ -54,16 +52,19 @@ mem_arena* arena_create(u64 capacity) {
     return arena;
 }
 
-void arena_destroy(mem_arena* arena) {
+void arena_destroy(mem_arena* arena)
+{
     free(arena);
 }
 
-u64 arena_align_forward(u64 pos, u64 alignment) {
+u64 arena_align_forward(u64 pos, u64 alignment)
+{
     // align the current position up to a power of two, based on the alignment size
     return (pos + (alignment - 1)) & ~(alignment - 1);
 }
 
-void* arena_push(mem_arena* arena, u64 size) {
+void* arena_push(mem_arena* arena, u64 size)
+{
     u64 current_pos = arena->pos;
     // TODO (laith): look into cpu intricaces and why position alignment being in a power of 2
     // is necessary for performance
@@ -89,16 +90,19 @@ void* arena_push(mem_arena* arena, u64 size) {
     return block;
 }
 
-void arena_clear(mem_arena* arena) {
+void arena_clear(mem_arena* arena)
+{
     // capacity stays the same, as this is just moving the position pointer back to the start
     arena->pos = sizeof(mem_arena);
 }
 
-u64 arena_mark(mem_arena* arena) {
+u64 arena_mark(mem_arena* arena)
+{
     return arena->pos;
 }
 
-void arena_pop(mem_arena* arena, u64 mark) {
+void arena_pop(mem_arena* arena, u64 mark)
+{
     if (mark < sizeof(mem_arena)) {
         mark = sizeof(mem_arena);
     }
