@@ -5,6 +5,7 @@ A collection of C libraries I use in my C projects. All libraries are dependent 
 Inspired by RJF and the [RAD Debugger](https://github.com/EpicGamesExt/raddebugger) base libraries.
 
 Current list of libraries:
+
 - `lt_base.h`: Base layer of all my C projects. Includes helpful type definitions and macros.
 - `lt_arena.h`: Extremely simple implementation of an arena allocator.
 
@@ -12,7 +13,6 @@ Current list of libraries:
 // Arena Usage Example
 
 #include <stdio.h>
-#define LT_ARENA_IMPLEMENTATION
 #include "lt_arena.h"
 
 int main(void) {
@@ -49,23 +49,16 @@ int main(void) {
 ```c
 // Length Based Strings Usage Example.
 
-#include <stdio.h>
-#define LT_ARENA_IMPLEMENTATION
-#include "lt_arena.h"
-#define LT_STRING_IMPLEMENTATION
-#include "lt_strings.h"
-
-int main(void) {
     mem_arena* arena = arena_create(MiB(10));
 
-    string8 str = str8_lit("hello");
+    string8 str = str8("hello");
 
     // Null terminated character is inferred here
     char* cStr = "hello";
 
     string8 str8Version = str8_cstring(cStr);
 
-    s8 isSame = str8_compare(str, str8Version);
+    b8 isSame = str8_compare(str, str8Version);
     if (!isSame) {
         printf("%.*s is not the same as %.*s\n", str8_fmt(str), str8_fmt(str8Version));
         return 1;
@@ -81,6 +74,7 @@ int main(void) {
     arena_destroy(arena);
 
     return 0;
+
 }
 ```
 
