@@ -87,13 +87,53 @@ void arena_pop(arena* arena, u64 mark)
     arena->pos = mark;
 }
 
-arena_temp arena_temp_begin(arena* arena) {
+arena_temp arena_temp_begin(arena* arena)
+{
     arena_temp temp = {0};
     temp.arena = arena;
     temp.pos = arena->pos;
     return temp;
 }
 
-void arena_temp_end(arena_temp arena) {
+void arena_temp_end(arena_temp arena)
+{
     arena_pop(arena.arena, arena.pos);
 }
+
+// TODO(laith): update current api to use platform specific virtual memory using functions below
+#if defined(__linux__)
+#include <sys/mman.h>
+
+void* arena_reserve(u64 size)
+{
+    void* ptr = mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (ptr == MAP_FAILED)
+    {
+        return NULL;
+    }
+
+    return ptr;
+}
+
+b32 arena_commit(void* ptr, u64 size)
+{
+    i32 commit = mprotect(ptr, size, PROT_READ | PROT_WRITE);
+
+    return commit != -1;
+}
+
+b32 arena_decommit(void* ptr, u64 size)
+{
+    i32 decommit = madvise(ptr, size, MADV_DONTNEED);
+
+    return decommit != -1;
+}
+
+b32 arena_release(void* ptr, u64 size)
+{
+    i32 release = munmap(ptr, size);
+
+    return release != -1;
+}
+
+#endif

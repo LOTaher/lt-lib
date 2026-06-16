@@ -41,4 +41,15 @@ void       arena_pop(arena* arena, u64 mark);
 arena_temp arena_temp_begin(arena* arena);
 void       arena_temp_end(arena_temp arena);
 
+#if defined(__linux__)
+
+// TODO(laith): update current api to use platform specific virtual memory using functions below
+
+void* arena_reserve(u64 size);
+b32 arena_commit(void* ptr, u64 size);
+b32 arena_decommit(void* ptr, u64 size);
+b32 arena_release(void* ptr, u64 size);
+
+#endif // __linux__
+
 #endif // LT_ARENA_H
