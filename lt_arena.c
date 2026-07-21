@@ -1,139 +1,100 @@
-/*  lt_arena.h - Functionality for my arena allocator implementation
-    Copyright (C) 2026 splatte.dev
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>. */
-
-#include <stdlib.h>
+#include "lt.h"
 #include <string.h>
-#include "./lt_arena.h"
 
-arena* arena_create(u64 capacity)
+Arena* lt_arena_create(u64 capacity)
 {
-    arena* arenaPtr = (arena*)malloc(sizeof(arena) + capacity);
+    u64 page_size = lt_os_page_size();
+    capacity = lt_arena_align_forward(capacity, page_size);
 
-    arenaPtr->capacity = capacity;
-    // points the starting position to the end of the arena struct in address space
-    arenaPtr->pos = sizeof(*arenaPtr);
-
-    return arenaPtr;
-}
-
-void arena_destroy(arena* arena)
-{
-    free(arena);
-}
-
-u64 arena_align_forward(u64 pos, u64 alignment)
-{
-    // align the current position up to a power of two, based on the alignment size
-    return (pos + (alignment - 1)) & ~(alignment - 1);
-}
-
-void* arena_push(arena* arena, u64 size)
-{
-    u64 current_pos = arena->pos;
-    // TODO (laith): look into cpu intricaces and why position alignment being in a power of 2
-    // is necessary for performance
-    u64 aligned_pos = arena_align_forward(current_pos, sizeof(void*));
-    u64 new_pos = aligned_pos + size;
-
-    if (new_pos > arena->capacity) {
-        // TODO (laith): might want to handle this more gracefully, but if you get to this
-        // point its too far gone
+    void* base = lt_os_reserve(capacity);
+    if (base == NULL) {
         return NULL;
     }
 
+    u64 initial_commit = lt_arena_align_forward(sizeof(Arena) + LT_ARENA_COMMIT_CHUNK, page_size);
+    if (initial_commit > capacity) {
+        initial_commit = capacity;
+    }
+
+    if (!lt_os_commit(base, initial_commit)) {
+        lt_os_release(base, capacity);
+        return NULL;
+    }
+
+    Arena* arena = (Arena*)base;
+    arena->capacity  = capacity;
+    arena->committed = initial_commit;
+    arena->pos       = sizeof(*arena);
+    return arena;
+}
+
+void lt_arena_destroy(Arena* arena)
+{
+    lt_os_release(arena, arena->capacity);
+}
+
+u64 lt_arena_align_forward(u64 pos, u64 alignment)
+{
+    return (pos + (alignment - 1)) & ~(alignment - 1);
+}
+
+void* lt_arena_push(Arena* arena, u64 size)
+{
+    u64 aligned_pos = lt_arena_align_forward(arena->pos, sizeof(void*));
+    u64 new_pos = aligned_pos + size;
+
+    if (new_pos > arena->capacity) {
+        return NULL;
+    }
+
+    if (new_pos > arena->committed) {
+        u64 page_size = lt_os_page_size();
+        u64 needed = lt_arena_align_forward(new_pos, page_size);
+        u64 grow_to = MAX(needed, arena->committed + LT_ARENA_COMMIT_CHUNK);
+        grow_to = MIN(grow_to, arena->capacity);
+
+        u64 commit_size = grow_to - arena->committed;
+        u8* commit_ptr = (u8*)arena + arena->committed;
+
+        if (!lt_os_commit(commit_ptr, commit_size)) {
+            return NULL;
+        }
+        arena->committed = grow_to;
+    }
+
     arena->pos = new_pos;
-
-    // the pointer to the arena itself is the start to our chunk of memory
-    // returning where the new aligned position is now gives an empty chunk
-    // of allocated memory up until the arena->new_pos
     u8* block = (u8*)arena + aligned_pos;
-    // 0 out the memory from the aligned position up until arena->new_pos, which is
-    // of length "size"
     memset(block, 0, size);
-
     return block;
 }
 
-void arena_clear(arena* arena)
+void lt_arena_clear(Arena* arena)
 {
-    // capacity stays the same, as this is just moving the position pointer back to the start
     arena->pos = sizeof(*arena);
 }
 
-u64 arena_mark(arena* arena)
+u64 lt_arena_mark(Arena* arena)
 {
     return arena->pos;
 }
 
-void arena_pop(arena* arena, u64 mark)
+void lt_arena_pop(Arena* arena, u64 mark)
 {
     if (mark < sizeof(*arena)) {
         mark = sizeof(*arena);
     }
-
     arena->pos = mark;
 }
 
-arena_temp arena_temp_begin(arena* arena)
+Arena_Temp lt_arena_temp_begin(Arena* arena)
 {
-    arena_temp temp = {0};
+    Arena_Temp temp = {0};
     temp.arena = arena;
     temp.pos = arena->pos;
     return temp;
 }
 
-void arena_temp_end(arena_temp arena)
+void lt_arena_temp_end(Arena_Temp arena)
 {
-    arena_pop(arena.arena, arena.pos);
+    lt_arena_pop(arena.arena, arena.pos);
 }
-
-// TODO(laith): update current api to use platform specific virtual memory using functions below
-#if defined(__linux__)
-#include <sys/mman.h>
-
-void* arena_reserve(u64 size)
-{
-    void* ptr = mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    if (ptr == MAP_FAILED)
-    {
-        return NULL;
-    }
-
-    return ptr;
-}
-
-b32 arena_commit(void* ptr, u64 size)
-{
-    i32 commit = mprotect(ptr, size, PROT_READ | PROT_WRITE);
-
-    return commit != -1;
-}
-
-b32 arena_decommit(void* ptr, u64 size)
-{
-    i32 decommit = madvise(ptr, size, MADV_DONTNEED);
-
-    return decommit != -1;
-}
-
-b32 arena_release(void* ptr, u64 size)
-{
-    i32 release = munmap(ptr, size);
-
-    return release != -1;
-}
-
-#endif

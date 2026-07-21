@@ -1,13 +1,13 @@
 # lt-lib
 
-A collection of C libraries I use in my C projects. All libraries are dependent on `lt_base.h` as it is the base layer.
+Utility library used by Laith Taher for all his C programming.
 
-Inspired by RJF and the [RAD Debugger](https://github.com/EpicGamesExt/raddebugger) base libraries.
+The entire API is located in `lt.h` and contains support for:
 
-Current list of libraries:
+- General Base Layer
+- Arena Allocators
+- Length-Based Strings
 
-- `lt_base.h`: Base layer of all my C projects. Includes helpful type definitions and macros.
-- `lt_arena.h`: Extremely simple implementation of an arena allocator.
-- `lt_strings.h`: Length based strings and common string functions. `lt_arena` is required for some functions.
+This specific design is inspired by [Eskil Steenberg](https://youtu.be/443UNeGrFoM?si=IBG4WSxiUSnEzXey).
 
-All of lt-lib's functionality is subject to change without any notice. Updates will remain backwards compatible.
+This library is released under GPL.
