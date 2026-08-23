@@ -2,7 +2,7 @@
 #define LT_H
 
 /* ------ LT ------
-  Utility library used by Laith Taher for all C Programming.It is meant to be imported in all C files I use and work on all systems */
+  Utility library used by Laith Taher for all C Programming. It is meant to be imported in all C files I use and work on all systems */
 
 #include <stdint.h>
 
@@ -93,6 +93,7 @@ extern String8 lt_string_substring(String8 str, u64 start, u64 end);       // Ge
 extern String8 lt_string_cstring(char *str);                               // Convert a C string to a String8.
 extern String8 lt_string_copy(String8 str, Arena *arena);                  // Copy a new string in memory.
 extern String8 lt_string_concat(String8 str1, String8 str2, Arena *arena); // Concat two strings together.
+extern String8 lt_string_create_fmt(Arena *arena, const char *fmt, ...);   // Create a formatted (printf-style) string.
 extern b8      lt_string_compare(String8 str1, String8 str2);              // Check whether two strings are equal.
 extern b8      lt_string_contains(String8 str, String8 substr);            // Check whether a string contains another.
 
@@ -116,16 +117,18 @@ typedef enum {
 
 extern b32      lt_net_init(void);                                                              // Platform net init (WSAStartup on win32, nothing on linux)
 extern void     lt_net_shutdown(void);                                                          // Platform net shutdown (WSACleanup on win32, nothing on linux)
-extern Socket   lt_net_socket_create(Net_Protocol protocol);                                    // Create a socket of the given protocol
-extern b32      lt_net_socket_is_valid(Socket sock);                                            // Check whether a socket handle is valid
+extern Socket   lt_net_socket_create(Net_Protocol protocol);                                    // Create a socket of the given protocol.
+extern b32      lt_net_socket_is_valid(Socket sock);                                            // Check whether a socket handle is valid.
 extern void     lt_net_socket_close(Socket sock);                                               // Close socket
 extern b32      lt_net_socket_bind(Socket sock, u16 port);                                      // Bind a socket to a local port.
+extern b32      lt_net_socket_set_blocking(Socket sock, b32 blocking);                          // Set a socket's blocking mode
+extern b32      lt_net_would_block(void);                                                       // Check whether the last failed net call failed only because no data was ready.
 extern b32      lt_net_resolve(String8 host, u16 port, Net_Addr* out_addr);                     // Resolve a hostname/IP string to a Net_Addr.
 extern b32      lt_net_tcp_listen(Socket sock, i32 backlog);                                    // (TCP) Mark socket as listening.
 extern Socket   lt_net_tcp_accept(Socket sock, Net_Addr* out_addr);                             // (TCP) Accept an incoming connection.
 extern b32      lt_net_tcp_connect(Socket sock, Net_Addr addr);                                 // (TCP) Connect to a remote address.
 extern i64      lt_net_tcp_send(Socket sock, const void* data, u64 size);                       // (TCP) Send on a connected socket.
-extern b32      lt_net_tcp_send_exact(Socket sock, void* buf, u64 send_size);                   // (TCP) Send a specific number of bytes to a connected socket
+extern b32      lt_net_tcp_send_exact(Socket sock, void* buf, u64 send_size);                   // (TCP) Send a specific number of bytes to a connected socket.
 extern i64      lt_net_tcp_recv(Socket sock, void* buf, u64 size);                              // (TCP) Receive on a connected socket.
 extern b32      lt_net_tcp_recv_exact(Socket sock, void* buf, u64 buffer_size, u64 recv_size);  // (TCP) Recieves a specific number of bytes from a connected socket.
 extern i64      lt_net_udp_sendto(Socket sock, const void* data, u64 size, Net_Addr addr);      // (UDP) Send to an address.
@@ -134,7 +137,7 @@ extern i64      lt_net_udp_recvfrom(Socket sock, void* buf, u64 size, Net_Addr* 
 /* --- Time Library --- */
 
 extern u64   lt_time_now_ms(void);               // Monotonic ms for measuring elapsed time.
-extern void  lt_time_sleep_ms(u64 ms);           // Pause calling for a number of milliseconds
+extern void  lt_time_sleep_ms(u64 ms);           // Pause calling for a number of milliseconds.
 
 /* --- Thread Library --- */
 
@@ -144,7 +147,7 @@ typedef struct {
 
 typedef void (*Thread_Func)(void* arg);
 
-extern Thread lt_thread_create(Thread_Func func, void* arg);   // Create and start a new thread that is running func(arg)
-extern void   lt_thread_join(Thread thread);                   // Block until the thread finishes
+extern Thread lt_thread_create(Thread_Func func, void* arg);   // Create and start a new thread that is running func(arg).
+extern void   lt_thread_join(Thread thread);                   // Block until the thread finishes.
 
 #endif // LT_H

@@ -6,6 +6,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
@@ -141,6 +143,28 @@ b32 lt_net_resolve(String8 host, u16 port, Net_Addr* out_addr)
     freeaddrinfo(result);
 
     return TRUE;
+}
+
+b32 lt_net_socket_set_blocking(Socket sock, b32 blocking)
+{
+    int fd = (int)sock.handle;
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        return FALSE;
+    }
+    // NOTE(laith): O_NONBLOCK is the inverse of "blocking", so we set/clear it based on the input.
+    if (blocking) {
+        flags &= ~O_NONBLOCK;
+    } else {
+        flags |= O_NONBLOCK;
+    }
+    return fcntl(fd, F_SETFL, flags) == 0;
+}
+
+b32 lt_net_would_block(void)
+{
+    // NOTE(laith): errno is must be called after a failing lt_net_udp_recvfrom since its a global
+    return errno == EAGAIN || errno == EWOULDBLOCK;
 }
 
 #endif // __linux__, __unix__, __APPLE__

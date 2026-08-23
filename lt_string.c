@@ -1,5 +1,7 @@
 #include "lt.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 String8 lt_string_substring(String8 str, u64 start, u64 end)
 {
@@ -46,6 +48,35 @@ b8 lt_string_compare(String8 str1, String8 str2)
     if (str1.length != str2.length) return 0;
 
     return memcmp(str1.str, str2.str, str1.length) == 0 ? 1 : 0;
+}
+
+String8 lt_string_create_fmt(Arena *arena, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    va_list args_copy;
+    va_copy(args_copy, args);
+    i32 length = vsnprintf(NULL, 0, fmt, args);
+    va_end(args);
+
+    if (length < 0)
+    {
+        va_end(args_copy);
+        return (String8){0};
+    }
+
+    u8 *bytes = (u8 *)lt_arena_push(arena, (u64)length + 1);
+    if (bytes == NULL)
+    {
+        va_end(args_copy);
+        return (String8){0};
+    }
+
+    vsnprintf((char *)bytes, (u64)length + 1, fmt, args_copy);
+    va_end(args_copy);
+
+    return (String8){bytes, (u64)length};
 }
 
 b8 lt_string_contains(String8 str, String8 substr)

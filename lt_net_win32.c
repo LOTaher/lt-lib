@@ -139,6 +139,19 @@ b32 lt_net_resolve(String8 host, u16 port, Net_Addr* out_addr)
     return TRUE;
 }
 
+b32 lt_net_socket_set_blocking(Socket sock, b32 blocking)
+{
+    // NOTE(laith): ioctlsocket's FIONBIO takes an in/out u_long: 0 = blocking, nonzero = non-blocking.
+    // We negate `blocking` so callers pass TRUE for "blocking", matching the function name intuitively.
+    u_long mode = blocking ? 0 : 1;
+    return ioctlsocket((SOCKET)sock.handle, FIONBIO, &mode) == 0;
+}
+
+b32 lt_net_would_block(void)
+{
+    return WSAGetLastError() == WSAEWOULDBLOCK;
+}
+
 #endif // _WIN32
 
 // NOTE(laith): external declaration to prevent warning C4206 from MSVC (empty translation unit)

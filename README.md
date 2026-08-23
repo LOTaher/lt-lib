@@ -7,7 +7,8 @@ The entire API is located in `lt.h` and contains support for:
 - General Base Layer
 - Arena Allocators
 - Length-Based Strings
-
-This specific design is inspired by [Eskil Steenberg](https://youtu.be/443UNeGrFoM?si=IBG4WSxiUSnEzXey).
+- Networking
+- Threading
+- Time
 
 This library is released under GPL.
